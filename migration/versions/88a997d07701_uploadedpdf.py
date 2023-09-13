@@ -20,11 +20,12 @@ depends_on: Union[str, Sequence[str], None] = None
 
 def upgrade():
     op.create_table(
-        'uploadedPdf',
+        'uploaded_pdf',
         sa.Column('id', sa.Integer, primary_key=True, autoincrement=True),
         sa.Column('path', sa.String(length=255), nullable=False),
+        sa.UniqueConstraint('path', name='unique_path_constraint')  # Add a UniqueConstraint
     )
 
 
 def downgrade():
-    op.drop_table('uploadedPdf')
+    op.drop_table('uploaded_pdf')
