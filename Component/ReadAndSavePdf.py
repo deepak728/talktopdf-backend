@@ -4,7 +4,7 @@ from langchain.document_loaders import PyPDFLoader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from transformers import GPT2TokenizerFast
 from configs.db_config import DB_PARAMS
-import psycopg2
+from Dao import UploadPDF, Chunks
 
 
 tokenizer = GPT2TokenizerFast.from_pretrained("gpt2")
@@ -12,27 +12,14 @@ DB_PARAMS["dbname"] = "talk_to_pdf"
 
 
 async def readPdf(path):
-    await savePdfToDB(path)
+    row_id = await UploadPDF.savePdfToDB(path)
+    print(f"row_id : {row_id}")
     loader = PyPDFLoader(path)
     pages = loader.load_and_split()
-    print(pages)
-    return await createChunks(pages)
 
-
-async def savePdfToDB(path):
-    conn = psycopg2.connect(**DB_PARAMS)
-    cursor = conn.cursor()
-    insert_sql = "INSERT INTO uploaded_pdf (path) VALUES (%s);"
-    try:
-        cursor.execute(insert_sql, (path,))
-        conn.commit()
-    except psycopg2.Error as e:
-        print("Error while saving to db", e)
-    finally:
-        if cursor:
-            cursor.close()
-        if conn:
-            conn.close()
+    await save_content_to_db(pages, path)
+    # print(pages)
+    return pages
 
 
 def count_tokens(pdfPage: str) -> int:
@@ -40,7 +27,9 @@ def count_tokens(pdfPage: str) -> int:
 
 
 text_splitter = RecursiveCharacterTextSplitter(
-    chunk_size=251, chunk_overlap=24, length_function=count_tokens
+    chunk_size=100,
+    chunk_overlap=0,
+    length_function=count_tokens,
 )
 
 
@@ -58,12 +47,14 @@ async def plot_tokens(chunks):
     plt.show()
 
 
-async def createChunks(pages):
-    chunks = text_splitter.create_documents([pages[0].page_content])
-
-    for chunk in chunks:
-        temp = chunk.page_content.replace("\n", "\n")
-        print(temp)
-        print("")
-    # await plot_tokens(chunks)
-    return chunks
+async def save_content_to_db(pages, path):
+    for page in pages:
+        chunks = text_splitter.split_text(page.page_content)
+        # print(chunks)
+        for chunk in chunks:
+            chunk_text = (
+                chunk.page_content if hasattr(chunk, "page_content") else str(chunk)
+            )
+            print(f"chunk_content: {chunk_text}")
+            print("")
+            Chunks.save_chunk_to_db(chunk_text, path)

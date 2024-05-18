@@ -12,7 +12,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = '88a997d07701'
+revision: str = "88a997d07701"
 down_revision: Union[str, None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -20,12 +20,23 @@ depends_on: Union[str, Sequence[str], None] = None
 
 def upgrade():
     op.create_table(
-        'uploaded_pdf',
-        sa.Column('id', sa.Integer, primary_key=True, autoincrement=True),
-        sa.Column('path', sa.String(length=255), nullable=False),
-        sa.UniqueConstraint('path', name='unique_path_constraint')  # Add a UniqueConstraint
+        "uploaded_pdf",
+        sa.Column("id", sa.Integer, primary_key=True, autoincrement=True),
+        sa.Column("path", sa.String(length=255), nullable=False),
+        sa.UniqueConstraint("path", name="unique_path_constraint"),
+    )
+
+    op.create_table(
+        "chunks",
+        sa.Column("id", sa.Integer, primary_key=True, autoincrement=True),
+        sa.Column("pdf_id", sa.Integer, nullable=False),
+        sa.Column("chunk", sa.Text, nullable=True),
+        sa.ForeignKeyConstraint(
+            ["pdf_id"], ["uploaded_pdf.id"], name="fk_chunks_pdf_id"
+        ),
     )
 
 
 def downgrade():
-    op.drop_table('uploaded_pdf')
+    op.drop_table("chunks")
+    op.drop_table("uploaded_pdf")
