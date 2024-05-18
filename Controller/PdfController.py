@@ -20,7 +20,7 @@ async def test():
 @app.post("/uploadPdf")
 async def uploadPdf(data: PathData):
     path = data.path
-    content = await ReadAndSavePdf.readPdf(path)
+    content = await ReadAndSavePdf.read_and_save_pdf(path)
     return content
 
 

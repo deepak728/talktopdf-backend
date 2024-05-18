@@ -4,22 +4,26 @@ from langchain.document_loaders import PyPDFLoader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from transformers import GPT2TokenizerFast
 from configs.db_config import DB_PARAMS
-from Dao import UploadPDF, Chunks
+from Dao import PDF, Chunks
 
 
 tokenizer = GPT2TokenizerFast.from_pretrained("gpt2")
 DB_PARAMS["dbname"] = "talk_to_pdf"
 
 
-async def readPdf(path):
-    row_id = await UploadPDF.savePdfToDB(path)
+async def read_and_save_pdf(path):
+    row_id = await PDF.find_pdf(path)
+    if row_id is not None:
+        return row_id
+
+    row_id = await PDF.savePdfToDB(path)
     print(f"row_id : {row_id}")
     loader = PyPDFLoader(path)
     pages = loader.load_and_split()
 
     await save_content_to_db(pages, path)
-    # print(pages)
-    return pages
+    print(pages)
+    return row_id
 
 
 def count_tokens(pdfPage: str) -> int:
