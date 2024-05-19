@@ -28,8 +28,29 @@ def save_chunk_to_db(chunk, path):
             conn.close()
 
 
-def save_summary_to_db(chunk_text, chunk_id, row_id):
-    return None
+async def save_summary_to_db(chunk_text, chunk_id, pdf_id):
+    print(f"Saving this summary in db : {chunk_text}")
+    conn = psycopg2.connect(**DB_PARAMS)
+    cursor = conn.cursor()
+    insert_query = """
+    INSERT INTO chunk_summary (pdf_id, chunk_id, summary)
+    VALUES (%s, %s, %s) returning id;
+    """
+
+    try:
+        cursor.execute(insert_query, (pdf_id, chunk_id, chunk_text))
+        conn.commit()
+        summary_id = cursor.fetchone()[0]
+
+        return summary_id
+    except psycopg2.Error as e:
+        print("Error while saving chunk summary to db :", e)
+        return None
+    finally:
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()
 
 
 def delete_pdf(pdf_id):

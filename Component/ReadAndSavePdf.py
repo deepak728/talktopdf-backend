@@ -60,11 +60,16 @@ async def save_content_to_db(pages, path):
             chunk_text = (
                 chunk.page_content if hasattr(chunk, "page_content") else str(chunk)
             )
-            print(f"chunk_content: {chunk_text}")
-            print("")
+            print(f"\nchunk_content: {chunk_text}\n")
+
             chunk_id, pdf_id = Chunks.save_chunk_to_db(chunk_text, path)
-            print(f"chubk_id {chunk_id}, pdf_id {pdf_id}")
-            Chunks.save_summary_to_db(OpenAPI.get_summary(chunk_text), chunk_id, pdf_id)
+            print(f"chunk_id {chunk_id}, pdf_id {pdf_id}")
+
+            chunk_summary = await OpenAPI.get_summary(chunk_text)
+            chunk_summary_id = await Chunks.save_summary_to_db(
+                chunk_summary, chunk_id, pdf_id
+            )
+            print(f"chunk summary id : {chunk_summary_id}")
 
 
 async def delete_pdf(path):
