@@ -12,11 +12,20 @@ def run_alembic_migration():
         # Get the directory of the currently executing script (main.py)
         script_dir = os.path.dirname(os.path.abspath(__file__))
 
+        # Ensure the directory contains alembic.ini
+        alembic_ini_path = os.path.join(script_dir, "alembic.ini")
+        if not os.path.exists(alembic_ini_path):
+            raise FileNotFoundError(
+                f"Alembic configuration file not found at {alembic_ini_path}"
+            )
+
         # Run the Alembic migration command
         subprocess.run(["alembic", "upgrade", "head"], cwd=script_dir, check=True)
         print("Alembic migration completed successfully.")
     except subprocess.CalledProcessError as e:
         print("Alembic migration failed:", e)
+    except FileNotFoundError as e:
+        print(e)
 
 
 if __name__ == "__main__":

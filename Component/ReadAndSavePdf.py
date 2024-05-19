@@ -5,6 +5,7 @@ from langchain.text_splitter import RecursiveCharacterTextSplitter
 from transformers import GPT2TokenizerFast
 from configs.db_config import DB_PARAMS
 from Dao import PDF, Chunks
+from Component import OpenAPI
 
 
 tokenizer = GPT2TokenizerFast.from_pretrained("gpt2")
@@ -61,4 +62,15 @@ async def save_content_to_db(pages, path):
             )
             print(f"chunk_content: {chunk_text}")
             print("")
-            Chunks.save_chunk_to_db(chunk_text, path)
+            chunk_id, pdf_id = Chunks.save_chunk_to_db(chunk_text, path)
+            print(f"chubk_id {chunk_id}, pdf_id {pdf_id}")
+            Chunks.save_summary_to_db(OpenAPI.get_summary(chunk_text), chunk_id, pdf_id)
+
+
+async def delete_pdf(path):
+    pdf_id = await PDF.find_pdf(path)
+    if pdf_id is None:
+        print(f"Pdf does not exist")
+        return False
+
+    return Chunks.delete_pdf(pdf_id)

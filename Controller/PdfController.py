@@ -29,3 +29,9 @@ async def getSummary(data: PathData):
     path = data.path
     content = await GetSummary.get_summary(path)
     return content
+
+
+@app.post("/deletePdf")
+async def deletePdf(data: PathData):
+    path = data.path
+    return await ReadAndSavePdf.delete_pdf(path)
