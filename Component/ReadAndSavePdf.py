@@ -23,7 +23,7 @@ async def read_and_save_pdf(path):
     pages = loader.load_and_split()
 
     await save_content_to_db(pages, path)
-    print(pages)
+    # print(pages)
     return row_id
 
 
@@ -32,7 +32,7 @@ def count_tokens(pdfPage: str) -> int:
 
 
 text_splitter = RecursiveCharacterTextSplitter(
-    chunk_size=100,
+    chunk_size=400,
     chunk_overlap=0,
     length_function=count_tokens,
 )

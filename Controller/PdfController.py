@@ -10,6 +10,10 @@ app = FastAPI()
 
 class PathData(BaseModel):
     path: str
+    words: int
+
+class BodyData(BaseModel):
+    path : str
 
 
 @app.get("/test")
@@ -27,11 +31,12 @@ async def uploadPdf(data: PathData):
 @app.post("/getSummary")
 async def getSummary(data: PathData):
     path = data.path
-    content = await GetSummary.get_summary(path)
+    words = data.words
+    content = await GetSummary.get_summary(path, words)
     return content
 
 
 @app.post("/deletePdf")
-async def deletePdf(data: PathData):
+async def deletePdf(data: BodyData):
     path = data.path
     return await ReadAndSavePdf.delete_pdf(path)
